@@ -64,6 +64,10 @@ class WeatherViewController: UIViewController {
                     self.conditionLabel.textColor = errorColor
                 }
         }
+        
+        _ = after(interval: oneHour).then{
+            self.updateWithCurrentLocation()
+        }
     }
     
     
