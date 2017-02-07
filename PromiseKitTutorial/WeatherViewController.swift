@@ -50,7 +50,20 @@ class WeatherViewController: UIViewController {
     }
     
     private func updateWithCurrentLocation() {
-        handleMockLocation()
+        _ = locationHelper.getLocation().then { placemark in
+            self.handleLocation(placemark: placemark)
+            }.catch { error in
+                self.tempLabel.text = "--"
+                self.placeLabel.text = "--"
+                switch error{
+                case is CLError where (error as! CLError).code == CLError.Code.denied:
+                    self.conditionLabel.text = "Enable Location Permission in Settings"
+                    self.conditionLabel.textColor = .white
+                default:
+                    self.conditionLabel.text = error.localizedDescription
+                    self.conditionLabel.textColor = errorColor
+                }
+        }
     }
     
     fileprivate func handleMockLocation() {

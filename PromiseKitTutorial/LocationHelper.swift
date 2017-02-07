@@ -27,10 +27,15 @@ import PromiseKit
 
 
 class LocationHelper  {
-  let coder = CLGeocoder()
-  
-  func getLocation() -> Promise<CLPlacemark> {
-    return BrokenPromise()
-  }
-  
+    let coder = CLGeocoder()
+    
+    func getLocation() -> Promise<CLPlacemark> {
+        
+        return CLLocationManager.promise().then { location in
+            
+            return self.coder.reverseGeocode(location: location)
+            
+        }
+    }
+    
 }
