@@ -118,9 +118,11 @@ class WeatherViewController: UIViewController {
 extension WeatherViewController: UITextFieldDelegate {
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        guard let _ = textField.text else { return true }
-        
-        handleMockLocation()
+        textField.resignFirstResponder()
+        guard let text = textField.text else { return true }
+        _ = locationHelper.searchForPlacemark(text: text).then { placemark -> Void in
+            self.handleLocation(placemark: placemark)
+        }
         
         return true
     }

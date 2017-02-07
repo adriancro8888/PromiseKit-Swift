@@ -37,5 +37,8 @@ class LocationHelper  {
             
         }
     }
-    
+    func searchForPlacemark(text:String) -> Promise<CLPlacemark>{
+          return CLGeocoder().geocode(text)
+        
+    }
 }
