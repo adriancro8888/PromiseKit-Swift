@@ -101,6 +101,21 @@ class WeatherHelper {
         
     }
     
+    func getIcon(named iconName:String) -> Promise<UIImage>{
+        return Promise{fullfill,fail in
+            let request = URLRequest(url: URL(string: "http://openweathermap.org/img/w/\(iconName).png")!)
+            
+            let session = URLSession.shared
+            let dataPromise:URLDataPromise = session.dataTask(with: request)
+            let backgroundQ = DispatchQueue.global(qos: .background)
+            _ = dataPromise.then(on: backgroundQ, execute: { data -> Void in
+                let image = UIImage(data: data)!
+                fullfill(image)
+            }).catch(execute: fail)
+        }
+    }
+    
+    
     private func saveFile(named: String, data: Data, completion: @escaping (Error?) -> Void) {
         DispatchQueue.global(qos: .background).async {
             if let path = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent(named+".png") {

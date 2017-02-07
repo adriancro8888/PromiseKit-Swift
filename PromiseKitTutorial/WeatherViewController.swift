@@ -66,10 +66,6 @@ class WeatherViewController: UIViewController {
         }
     }
     
-    fileprivate func handleMockLocation() {
-        self.handleLocation(city: "Athens", state: "Greece", latitude: 37.966667, longitude: 23.716667)
-    }
-    
     
     func handleLocation(placemark: CLPlacemark) {
         handleLocation(city: placemark.locality,
@@ -83,9 +79,13 @@ class WeatherViewController: UIViewController {
             self.placeLabel.text = "\(city), \(state)"
         }
         
-        weatherAPI.getWeather(latitude: latitude, longitude: longitude).then {weather -> Void in
+        weatherAPI.getWeather(latitude: latitude, longitude: longitude).then {weather -> Promise<UIImage> in
             self.updateUIWithWeather(weather: weather)
             
+            return self.weatherAPI.getIcon(named: weather.iconName)
+            
+            }.then(on: DispatchQueue.main){ icon -> Void in
+                self.iconImageView.image = icon
             }.catch{ error in
                 self.tempLabel.text = "--"
                 self.conditionLabel.text = error.localizedDescription
