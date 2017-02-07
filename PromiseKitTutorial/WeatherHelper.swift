@@ -95,28 +95,45 @@ class WeatherHelper {
                     return
                 }
                 fullfill(result)
-            }.catch(execute: reject)
+                }.catch(execute: reject)
             
         }
         
     }
+    func getIconFromNetwork(named iconName:String) ->Promise<UIImage>{
+        
+        let request = URLRequest(url: URL(string: "http://openweathermap.org/img/w/\(iconName).png")!)
+        
+        let session = URLSession.shared
+        let dataPromise:URLDataPromise = session.dataTask(with: request)
+        return dataPromise.then(on: DispatchQueue.global(qos: .background)) { data -> Promise<UIImage> in
+            return firstly { Void in
+                return wrap {
+                    self.saveFile(named: iconName, data: data, completion: $0)}
+                    .then{ Void -> Promise<UIImage> in
+                        let image = UIImage(data: data)!
+                        return Promise(value: image)
+                }
+                
+            }
+            
+        }
+    }
     
     func getIcon(named iconName:String) -> Promise<UIImage>{
-        return Promise{fullfill,fail in
-            let request = URLRequest(url: URL(string: "http://openweathermap.org/img/w/\(iconName).png")!)
-            
-            let session = URLSession.shared
-            let dataPromise:URLDataPromise = session.dataTask(with: request)
-            let backgroundQ = DispatchQueue.global(qos: .background)
-            _ = dataPromise.then(on: backgroundQ, execute: { data -> Void in
-                let image = UIImage(data: data)!
-                fullfill(image)
-            }).catch(execute: fail)
+        return wrap{
+            getFile(named: iconName, completion: $0)
+            }.then { image in
+                if image == nil{
+                    return self.getIconFromNetwork(named: iconName)
+                }else{
+                    return Promise(value: image!)
+                }
         }
     }
     
     
-    private func saveFile(named: String, data: Data, completion: @escaping (Error?) -> Void) {
+    private  func saveFile(named: String, data: Data, completion: @escaping (Error?) -> Void) {
         DispatchQueue.global(qos: .background).async {
             if let path = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent(named+".png") {
                 do {
