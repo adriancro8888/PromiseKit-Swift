@@ -78,7 +78,7 @@ class WeatherViewController: UIViewController {
         if let city = city, let state = state {
             self.placeLabel.text = "\(city), \(state)"
         }
-        
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
         weatherAPI.getWeather(latitude: latitude, longitude: longitude).then {weather -> Promise<UIImage> in
             self.updateUIWithWeather(weather: weather)
             
@@ -91,6 +91,8 @@ class WeatherViewController: UIViewController {
                 self.conditionLabel.text = error.localizedDescription
                 self.conditionLabel.textColor = errorColor
                 
+            }.always {
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
         }
     }
     
