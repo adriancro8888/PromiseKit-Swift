@@ -82,18 +82,20 @@ class WeatherHelper {
             
             let request = URLRequest(url: URL(string: urlString)!)
             
-            URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
-                if let data = data,
-                    let json = (try? JSONSerialization.jsonObject(with: data, options: [])) as? [String:Any],
-                    let result = Weather(jsonDictionary: json){
-                    fullfill(result)
-                }else if let error = error{
+            //MARK: Using PromiseKit Wrappers
+            
+            let session = URLSession.shared
+            
+            let dataPromise:URLDataPromise = session.dataTask(with: request)
+            
+            _ = dataPromise.asDictionary().then {dictionary -> Void in
+                guard let result = Weather(jsonDictionary: dictionary as! [String:Any]) else {
+                    let error = NSError(domain: "PromiseKit Errro", code: 0, userInfo: [NSLocalizedDescriptionKey : "Unknown error"])
                     reject(error)
-                }else{
-                    let error = NSError(domain: "PromiseKit", code: 0, userInfo: [NSLocalizedDescriptionKey: "Unknown error"])
-                    reject(error)
+                    return
                 }
-            }).resume()
+                fullfill(result)
+            }.catch(execute: reject)
             
         }
         
