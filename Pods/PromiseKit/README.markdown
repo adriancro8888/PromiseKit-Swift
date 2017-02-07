@@ -2,11 +2,15 @@
 
 ![badge-pod] ![badge-languages] ![badge-pms] ![badge-platforms] ![badge-mit]
 
+[简体中文](README.zh_CN.md)
+
+---
+
 Modern development is highly asynchronous: isn’t it about time we had tools that
 made programming asynchronously powerful, easy and delightful?
 
 ```swift
-UIApplication.shared.networkActivityIndicatorVisible = true
+UIApplication.shared.isNetworkActivityIndicatorVisible = true
 
 firstly {
     when(URLSession.dataTask(with: url).asImage(), CLLocationManager.promise())
@@ -14,7 +18,7 @@ firstly {
     self.imageView.image = image;
     self.label.text = "\(location)"
 }.always {
-    UIApplication.shared.networkActivityIndicatorVisible = false
+    UIApplication.shared.isNetworkActivityIndicatorVisible = false
 }.catch { error in
     UIAlertView(/*…*/).show()
 }
@@ -31,16 +35,9 @@ We recommend [CocoaPods] or [Carthage], however you can just drop `PromiseKit.xc
 ## Xcode 8 / Swift 3
 
 ```ruby
-# CocoaPods
+# CocoaPods >= 1.1.0-rc.2
+swift_version = "3.0"
 pod "PromiseKit", "~> 4.0"
-
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings['SWIFT_VERSION'] = '3.0'
-    end
-  end
-end
 
 # Carthage
 github "mxcl/PromiseKit" ~> 4.0
@@ -57,6 +54,7 @@ let package = Package(
 
 ```ruby
 # CocoaPods
+swift_version = "2.3"
 pod "PromiseKit", "~> 3.5"
 
 # Carthage
@@ -119,6 +117,20 @@ func avatar() -> Promise<UIImage> {
 
     return when(username, CLLocationManager.promise()).then { user, location in
         return fetchAvatar(user, location: location)
+    }
+}
+```
+
+You can easily create a new, pending promise.
+```swift
+func fetchAvatar(user: String) -> Promise<UIImage> {
+    return Promise { fulfill, reject in
+        MyWebHelper.GET("\(user)/avatar") { data, err in
+            guard let data = data else { return reject(err) }
+            guard let img = UIImage(data: data) else { return reject(MyError.InvalidImage) }
+            guard let img.size.width > 0 else { return reject(MyError.ImageTooSmall) }
+            fulfill(img)
+        }
     }
 }
 ```
@@ -196,6 +208,12 @@ URLSession.GET("http://example.com").asDictionary().then { json in
 ```
 
 For [AFNetworking] we recommend [csotiriou/AFNetworking].
+
+
+# Need to convert your codebase to Promises?
+
+[Hire me](mailto:mxcl@me.com), I have years of experience with Promises in iOS codebases and 10 years of professional experience developing mobile apps.
+
 
 # Support
 
