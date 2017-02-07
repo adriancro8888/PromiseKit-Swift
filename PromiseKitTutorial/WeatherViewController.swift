@@ -34,83 +34,82 @@ private let randomCities = [("Tokyo", "JP", 35.683333, 139.683333),
                             ("São Paulo", "BR", -23.55, -46.633333)]
 
 class WeatherViewController: UIViewController {
-  
-  @IBOutlet weak var placeLabel: UILabel!
-  @IBOutlet weak var tempLabel: UILabel!
-  @IBOutlet weak var iconImageView: UIImageView!
-  @IBOutlet weak var conditionLabel: UILabel!
-  
-  let weatherAPI = WeatherHelper()
-  let locationHelper = LocationHelper()
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
     
-    updateWithCurrentLocation()
-  }
-  
-  private func updateWithCurrentLocation() {
-    handleMockLocation()
-  }
-  
-  fileprivate func handleMockLocation() {
-    self.handleLocation(city: "Athens", state: "Greece", latitude: 37.966667, longitude: 23.716667)
-  }
-  
-  
-  func handleLocation(placemark: CLPlacemark) {
-    handleLocation(city: placemark.locality,
-                   state: placemark.administrativeArea,
-                   latitude:  placemark.location!.coordinate.latitude,
-                   longitude: placemark.location!.coordinate.longitude)
-  }
-  
-  func handleLocation(city: String?, state: String?, latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
-    if let city = city, let state = state {
-      self.placeLabel.text = "\(city), \(state)"
+    @IBOutlet weak var placeLabel: UILabel!
+    @IBOutlet weak var tempLabel: UILabel!
+    @IBOutlet weak var iconImageView: UIImageView!
+    @IBOutlet weak var conditionLabel: UILabel!
+    
+    let weatherAPI = WeatherHelper()
+    let locationHelper = LocationHelper()
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        updateWithCurrentLocation()
     }
     
-    weatherAPI.getWeatherTheOldFashionedWay(latitude: latitude, longitude: longitude) { weather, error in
-      
-      guard let weather = weather else {
-        self.tempLabel.text = "--"
-        self.conditionLabel.text = error?.localizedDescription ?? "--"
-        return
-      }
-      
-      self.updateUIWithWeather(weather: weather)
+    private func updateWithCurrentLocation() {
+        handleMockLocation()
     }
-  }
-
-  private func updateUIWithWeather(weather: WeatherHelper.Weather) {
-    let tempMeasurement = Measurement(value: weather.tempInK, unit: UnitTemperature.kelvin)
-    let formatter = MeasurementFormatter()
-    let numberFormatter = NumberFormatter()
-    numberFormatter.numberStyle = .none
-    formatter.numberFormatter = numberFormatter
-    let tempStr = formatter.string(from: tempMeasurement)
-    self.tempLabel.text = tempStr
-    self.conditionLabel.text = weather.text
-    self.conditionLabel.textColor = UIColor.white
-  }
-  
-  @IBAction func showRandomWeather(_ sender: AnyObject) {
     
-  }
-  
+    fileprivate func handleMockLocation() {
+        self.handleLocation(city: "Athens", state: "Greece", latitude: 37.966667, longitude: 23.716667)
+    }
+    
+    
+    func handleLocation(placemark: CLPlacemark) {
+        handleLocation(city: placemark.locality,
+                       state: placemark.administrativeArea,
+                       latitude:  placemark.location!.coordinate.latitude,
+                       longitude: placemark.location!.coordinate.longitude)
+    }
+    
+    func handleLocation(city: String?, state: String?, latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
+        if let city = city, let state = state {
+            self.placeLabel.text = "\(city), \(state)"
+        }
+        
+        weatherAPI.getWeather(latitude: latitude, longitude: longitude).then {weather -> Void in
+            self.updateUIWithWeather(weather: weather)
+            
+            }.catch{ error in
+                self.tempLabel.text = "--"
+                self.conditionLabel.text = error.localizedDescription
+                self.conditionLabel.textColor = errorColor
+                
+        }
+    }
+    
+    private func updateUIWithWeather(weather: WeatherHelper.Weather) {
+        let tempMeasurement = Measurement(value: weather.tempInK, unit: UnitTemperature.kelvin)
+        let formatter = MeasurementFormatter()
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .none
+        formatter.numberFormatter = numberFormatter
+        let tempStr = formatter.string(from: tempMeasurement)
+        self.tempLabel.text = tempStr
+        self.conditionLabel.text = weather.text
+        self.conditionLabel.textColor = UIColor.white
+    }
+    
+    @IBAction func showRandomWeather(_ sender: AnyObject) {
+        
+    }
+    
 }
 
 
 // MARK: - UITextFieldDelegate
 
 extension WeatherViewController: UITextFieldDelegate {
-  
-  func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-    guard let _ = textField.text else { return true }
     
-    handleMockLocation()
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        guard let _ = textField.text else { return true }
+        
+        handleMockLocation()
+        
+        return true
+    }
     
-    return true
-  }
-  
 }
